@@ -55,7 +55,8 @@ impl<Message> canvas::Program<Message> for BarChart {
         let size = frame.size();
         let height = size.height;
         let width = size.width;
-        let bar_width = width / self.values.len() as f32 - self.internal_padding.horizontal();
+        let len_bars = self.values.len() as f32;
+        let bar_width = (width - self.internal_padding.horizontal() * (len_bars - 1.0)) / len_bars;
         let value_for_multiply = height / self.max_value;
 
         for (index, &value) in self.values.iter().enumerate() {

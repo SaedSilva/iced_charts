@@ -1,4 +1,4 @@
-use iced::{Element, Task};
+use iced::{Element, Length, Task};
 use iced::widget::container;
 use iced_charts::bar_chart::BarChart;
 
@@ -19,8 +19,8 @@ fn view(state: &State) -> Element<Message> {
             "Teste2".to_string(),
             "Teste3".to_string(),
         ],
-        vec![15.0, 10.0, 5.0],
-    ).width(500).height(500)).padding(16).into()
+        vec![15.0, 10.0, 5.0, 6.0, 9.0],
+    ).width(Length::Fill).height(Length::Fill)).padding(16).into()
 }
 
 fn update(state: &mut State, message: Message) -> Task<Message> {
