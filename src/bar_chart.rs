@@ -1,11 +1,11 @@
-use crate::get_max_value;
-use iced::advanced::{Widget, renderer};
+use crate::{get_max_value, is_valid};
+use iced::advanced::{renderer, Widget};
 use iced::mouse::Cursor;
 use iced::widget::canvas;
-use iced::widget::canvas::Geometry;
-use iced::{Element, Length, Padding, Point, Rectangle, Renderer, Size, Theme};
+use iced::widget::canvas::{Fill, Geometry, Stroke};
+use iced::{Color, Element, Length, Padding, Point, Rectangle, Renderer, Size, Theme};
 
-pub struct BarChart {
+pub struct VerticalBarChart {
     legends: Vec<String>,
     values: Vec<f32>,
     max_value: f32,
@@ -14,9 +14,10 @@ pub struct BarChart {
     internal_padding: Padding,
 }
 
-impl BarChart {
+impl VerticalBarChart {
     pub fn new(legends: Vec<String>, values: Vec<f32>) -> Self {
         let max = get_max_value(&values);
+        let _ = is_valid(&values, &legends).expect("Legends and values must have the same length");
 
         Self {
             legends,
@@ -37,9 +38,19 @@ impl BarChart {
         self.height = height.into();
         self
     }
+
+    pub fn padding(mut self, padding: impl Into<Padding>) -> Self {
+        self.internal_padding = padding.into();
+        self
+    }
+
+    pub fn max(mut self, max: f32) -> Self {
+        self.max_value = max;
+        self
+    }
 }
 
-impl<Message> canvas::Program<Message> for BarChart {
+impl<Message> canvas::Program<Message> for VerticalBarChart {
     type State = ();
 
     fn draw(
@@ -73,22 +84,27 @@ impl<Message> canvas::Program<Message> for BarChart {
             frame.fill(&bar, theme.palette().primary)
         }
 
-        // We create a `Path` representing a simple circle
-        // let circle = canvas::Path::circle(frame.center(), 16f32);
+        let rectangle = canvas::Path::rectangle(
+            Point {
+                x: 1.0,
+                y: 1.0,
+            },
+            Size {
+                height: bounds.size().height - 1.0,
+                width: bounds.size().width - 1.0,
+            }
+        );
+        frame.stroke(&rectangle, Stroke::default().with_color(theme.palette().text));
 
-        // And fill it with some color
-        // frame.fill(&circle, Color::BLACK);
-
-        // Then, we produce the geometry
         vec![frame.into_geometry()]
     }
 }
 
-impl<'a, Message: 'a> From<BarChart> for Element<'a, Message>
+impl<'a, Message: 'a> From<VerticalBarChart> for Element<'a, Message>
 where
     Renderer: renderer::Renderer,
 {
-    fn from(bar_chart: BarChart) -> Self {
+    fn from(bar_chart: VerticalBarChart) -> Self {
         let width = bar_chart.width;
         let height = bar_chart.height;
         canvas(bar_chart).width(width).height(height).into()
