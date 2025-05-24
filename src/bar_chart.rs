@@ -2,16 +2,18 @@ use crate::{get_max_value, is_valid};
 use iced::advanced::{renderer, Widget};
 use iced::mouse::Cursor;
 use iced::widget::canvas;
-use iced::widget::canvas::{Fill, Geometry, Stroke};
-use iced::{Color, Element, Length, Padding, Point, Rectangle, Renderer, Size, Theme};
+use iced::widget::canvas::{Geometry, Stroke};
+use iced::{Element, Length, Padding, Point, Rectangle, Renderer, Size, Theme};
 
 pub struct VerticalBarChart {
     legends: Vec<String>,
     values: Vec<f32>,
+    bar_max_value: f32,
     max_value: f32,
     width: Length,
     height: Length,
     internal_padding: Padding,
+    lines: u32
 }
 
 impl VerticalBarChart {
@@ -22,10 +24,12 @@ impl VerticalBarChart {
         Self {
             legends,
             values,
+            bar_max_value: max,
             max_value: max,
             width: Length::Shrink,
             height: Length::Shrink,
             internal_padding: Padding::new(8.0),
+            lines: 4
         }
     }
 
@@ -48,6 +52,11 @@ impl VerticalBarChart {
         self.max_value = max;
         self
     }
+    
+    pub fn lines(mut self, lines: u32) -> Self {
+        self.lines = lines;
+        self
+    }
 }
 
 impl<Message> canvas::Program<Message> for VerticalBarChart {
@@ -64,37 +73,67 @@ impl<Message> canvas::Program<Message> for VerticalBarChart {
         let mut frame = canvas::Frame::new(renderer, bounds.size());
 
         let size = frame.size();
-        let height = size.height;
         let width = size.width;
+        let height = size.height;
         let len_bars = self.values.len() as f32;
-        let bar_width = (width - self.internal_padding.horizontal() * (len_bars - 1.0)) / len_bars;
-        let value_for_multiply = height / self.max_value;
+        
+        let bar_max_height = height - self.internal_padding.vertical();
+        let bar_width = (width - self.internal_padding.horizontal() * (len_bars + 1.0)) / len_bars;
+        let value_for_multiply = bar_max_height / self.max_value;
+        
+        let blank_space = height - value_for_multiply * self.bar_max_value;
+        let line_space = value_for_multiply * self.bar_max_value / self.lines as f32;
+
+        println!("line_space: {}", line_space);
+        println!("blank_space: {}", blank_space);
+        println!("width: {}", width);
+        println!("bar_width: {}", bar_width);
+
+        for index in 0..=self.lines {
+            let line = canvas::Path::line(
+                Point {
+                    x: 0.0,
+                    y: index as f32 * line_space + blank_space,
+                },
+                Point {
+                    x: width,
+                    y: index as f32 * line_space + blank_space,
+                }
+            );
+
+            frame.stroke(&line, Stroke::default().with_color(theme.palette().text));
+        }
 
         for (index, &value) in self.values.iter().enumerate() {
             let bar = canvas::Path::rectangle(
                 Point {
-                    x: (bar_width + self.internal_padding.horizontal()) * index as f32,
-                    y: height - value * value_for_multiply,
+                    x: {
+                        let x = self.internal_padding.horizontal() + (bar_width + self.internal_padding.horizontal()) * index as f32;
+                        println!("x: {}", x);
+                        x
+                    },
+                    y: bar_max_height - value * value_for_multiply + self.internal_padding.vertical(),
                 },
                 Size {
                     height: value * value_for_multiply,
                     width: bar_width,
                 },
             );
-            frame.fill(&bar, theme.palette().primary)
+            
+            frame.fill(&bar, theme.palette().primary);
         }
 
         let rectangle = canvas::Path::rectangle(
-            Point {
-                x: 1.0,
-                y: 1.0,
-            },
+            Point { x: 1.0, y: 1.0 },
             Size {
                 height: bounds.size().height - 1.0,
                 width: bounds.size().width - 1.0,
-            }
+            },
         );
-        frame.stroke(&rectangle, Stroke::default().with_color(theme.palette().text));
+        frame.stroke(
+            &rectangle,
+            Stroke::default().with_color(theme.palette().text),
+        );
 
         vec![frame.into_geometry()]
     }
