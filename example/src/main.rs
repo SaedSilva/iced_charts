@@ -1,6 +1,7 @@
-use iced::widget::container;
-use iced::{Element, Length, Task};
+use iced::widget::{column, container};
+use iced::{Element, Task};
 use iced_charts::bar_chart::VerticalBarChart;
+use iced_charts::pie_chart::PieChart;
 
 fn main() -> iced::Result {
     iced::application("A example app", update, view).run()
@@ -13,24 +14,26 @@ struct State;
 enum Message {}
 
 fn view(state: &State) -> Element<Message> {
-    container(
-        VerticalBarChart::new(
-            vec![
-                "Teste".to_string(),
-                "Teste2".to_string(),
-                "Teste3".to_string(),
-                "Teste4".to_string(),
-                "Teste5".to_string(),
-            ],
-            vec![15.0, 10.0, 5.0, 6.0, 9.0],
-        )
-        .max(20.0)
-        .lines(16)
-        .width(Length::Fill)
-        .height(Length::Fill),
+    let vertical_bars = VerticalBarChart::new(
+        vec![
+            "Teste".to_string(),
+            "Teste2".to_string(),
+            "Teste3".to_string(),
+            "Teste4".to_string(),
+            "Teste5".to_string(),
+        ],
+        vec![15.0, 10.0, 5.0, 6.0, 9.0],
     )
-    .padding(16)
-    .into()
+    // .max(20.0)
+    .lines(15)
+    .width(200)
+    .height(200);
+
+    let pie_chart = PieChart::new(vec![5.0, 10.0, 5.0]).width(200).height(200);
+
+    container(column![vertical_bars, pie_chart].spacing(16))
+        .padding(16)
+        .into()
 }
 
 fn update(state: &mut State, message: Message) -> Task<Message> {
