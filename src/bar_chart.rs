@@ -14,7 +14,8 @@ pub struct VerticalBarChart {
     width: Length,
     height: Length,
     internal_padding: Padding,
-    lines: u32
+    lines: u32,
+    font_size: Pixels,
 }
 
 impl VerticalBarChart {
@@ -30,7 +31,8 @@ impl VerticalBarChart {
             width: Length::Shrink,
             height: Length::Shrink,
             internal_padding: Padding::new(8.0),
-            lines: 4
+            lines: 4,
+            font_size: Pixels::from(16.0),
         }
     }
 
@@ -56,6 +58,11 @@ impl VerticalBarChart {
     
     pub fn lines(mut self, lines: u32) -> Self {
         self.lines = lines;
+        self
+    }
+    
+    pub fn font_size(mut self, font_size: impl Into<Pixels>) -> Self {
+        self.font_size = font_size.into();
         self
     }
 }
@@ -122,17 +129,15 @@ impl<Message> canvas::Program<Message> for VerticalBarChart {
                     width: bar_width,
                 },
             );
-            
-            let font_size = 24.0;
 
             let text = canvas::Text {
                 content: value.to_string(),
                 position: Point {
                     x: top_left_x_mid,
-                    y: top_left_y - font_size
+                    y: top_left_y - (self.font_size.0 / 2.0)
                 },
                 color: theme.palette().text,
-                size: Pixels::from(font_size),
+                size: self.font_size,
                 line_height: Default::default(),
                 font: Default::default(),
                 horizontal_alignment: Horizontal::Center,

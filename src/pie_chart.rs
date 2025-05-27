@@ -15,9 +15,8 @@ pub struct PieChart {
 }
 
 impl PieChart {
-    pub fn new(values: Vec<f32>) -> Self {
+    pub fn new(values: Vec<f32>, colors: Vec<Color>) -> Self {
         let mut total = 0.0;
-        let colors = vec![Color::BLACK, Color::WHITE, color!(0x0245443)];
         for value in values.iter() {
             total += value;
         }
