@@ -55,6 +55,11 @@ impl VerticalBarChart {
         self.max_value = max;
         self
     }
+
+    pub fn max_multiply(mut self, max_multiply: f32) -> Self {
+        self.max_value = self.max_value * max_multiply;
+        self
+    }
     
     pub fn lines(mut self, lines: u32) -> Self {
         self.lines = lines;
@@ -84,6 +89,10 @@ impl<Message> canvas::Program<Message> for VerticalBarChart {
         let width = size.width;
         let height = size.height;
         let len_bars = self.values.len() as f32;
+        
+        if len_bars <= 0.0 {
+            return vec![frame.into_geometry()]
+        }
         
         let bar_max_height = height - self.internal_padding.vertical();
         let bar_width = (width - self.internal_padding.horizontal() * (len_bars + 1.0)) / len_bars;
@@ -148,16 +157,13 @@ impl<Message> canvas::Program<Message> for VerticalBarChart {
             frame.fill_text(text);
             frame.fill(&bar, theme.palette().primary);
         }
-
-        let rectangle = canvas::Path::rectangle(
-            Point { x: 1.0, y: 1.0 },
+        
+        frame.stroke_rectangle(
+            Point { x: 2.0, y: 2.0 },
             Size {
-                height: bounds.size().height - 1.0,
-                width: bounds.size().width - 1.0,
+                height: bounds.size().height - 2.0,
+                width: bounds.size().width - 2.0,
             },
-        );
-        frame.stroke(
-            &rectangle,
             Stroke::default().with_color(theme.palette().text),
         );
 
